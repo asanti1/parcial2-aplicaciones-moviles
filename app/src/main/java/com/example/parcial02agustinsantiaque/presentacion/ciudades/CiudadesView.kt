@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,19 +37,24 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import com.example.parcial02agustinsantiaque.R
 import com.example.parcial02agustinsantiaque.repositorio.DTO.RequestCiudadPorNombreDTO
+import com.example.parcial02agustinsantiaque.repositorio.models.Ciudad
 
 @Composable
 fun CiudadesView(
     modifier: Modifier = Modifier,
     estado: CiudadesEstado,
-    ejecutar: (CiudadesIntencion) -> Unit
-) {
+    ciudades: List<Ciudad>,
+    navController: NavController,
+    ejecutar: (CiudadesIntencion) -> Unit,
+
+    ) {
     var textoBusqueda by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -98,13 +106,38 @@ fun CiudadesView(
                         .size(24.dp)
                 )
             }
-            when (estado) {
-                is CiudadesEstado.Cargando -> Cargando()
-                is CiudadesEstado.Error -> Error()
-                is CiudadesEstado.Ok -> Estamos(estado.info)
-                is CiudadesEstado.Vacio -> Text("Vacio")
+            if (ciudades.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(ciudades) { ciudad ->
+                        Button(
+                            onClick = {
+                                navController.navigate(
+                                    "clima?nombre=${ciudad.name}" +
+                                            "&latitud=${ciudad.lat}" +
+                                            "&longitud=${ciudad.lon}" +
+                                            "&pais=${ciudad.country}"
+                                )
+                            }
+                        ) {
+                            Text(text = ciudad.name)
+                        }
+                    }
+                }
+            } else {
+                Text("No hay ciudades disponibles")
             }
         }
+    }
+    when (estado) {
+        is CiudadesEstado.Cargando -> Cargando()
+        is CiudadesEstado.Error -> Error()
+        is CiudadesEstado.Ok -> Estamos(estado.info)
+        is CiudadesEstado.Vacio -> Text("Vacio")
     }
 }
 

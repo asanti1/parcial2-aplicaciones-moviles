@@ -6,8 +6,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -28,7 +26,7 @@ class OpenWeatherMapRepositorio : Repositorio {
     private val BASE_URL_CIUDAD = "https://api.openweathermap.org/geo/1.0/direct"
     private val BASE_URL_CLIMA = "https://api.openweathermap.org/data/2.5/forecast"
     private val LANGUAGE = "es"
-    private val API_KEY = "TU API KEY AQUI"
+    private val API_KEY = "4c0e9513e459d4c28008e6a910b2356a"
     private val UNITS = "metric"
 
     private val cliente = HttpClient() {
