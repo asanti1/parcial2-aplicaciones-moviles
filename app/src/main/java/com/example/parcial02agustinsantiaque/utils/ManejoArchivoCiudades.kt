@@ -5,10 +5,15 @@ import com.example.parcial02agustinsantiaque.repositorio.models.Ciudad
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-object ManejoArchivoCiudades {
-    private const val NOMBRE_ARCHIVO = "ciudades.json"
 
-    fun getCiudadesDesdeJson(context: Context): List<Ciudad> {
+class ManejoArchivoCiudades  {
+    private val NOMBRE_ARCHIVO = "ciudades.json"
+    private lateinit var context: Context
+
+    fun initialize(context: Context) {
+        this.context = context.applicationContext
+    }
+    fun getCiudadesDesdeJson(): List<Ciudad> {
         return try {
             val jsonString =
                 context.openFileInput(NOMBRE_ARCHIVO).bufferedReader().use { it.readText() }
@@ -19,7 +24,7 @@ object ManejoArchivoCiudades {
         }
     }
 
-    private fun guardarCiudadesComoJson(context: Context ,listaCiudades: List<Ciudad>) {
+    private fun guardarCiudadesComoJson(listaCiudades: List<Ciudad>) {
         try {
             val jsonString = Json.encodeToString(listaCiudades)
             context.openFileOutput(NOMBRE_ARCHIVO, Context.MODE_PRIVATE).use { output ->
@@ -30,10 +35,10 @@ object ManejoArchivoCiudades {
         }
     }
 
-    fun agregarCiudadAJson(context: Context, nuevaCiudad: Ciudad) {
-        val listaCiudadesActual = getCiudadesDesdeJson(context).toMutableList()
+    fun agregarCiudadAJson(nuevaCiudad: Ciudad) {
+        val listaCiudadesActual = getCiudadesDesdeJson().toMutableList()
         listaCiudadesActual.add(0, nuevaCiudad)
 
-        guardarCiudadesComoJson(context, listaCiudadesActual)
+        guardarCiudadesComoJson(listaCiudadesActual)
     }
 }

@@ -4,47 +4,40 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.parcial02agustinsantiaque.presentacion.ciudades.CiudadesPage
 import com.example.parcial02agustinsantiaque.presentacion.clima.ClimaPage
-import com.example.parcial02agustinsantiaque.repositorio.models.Ciudad
+import com.example.parcial02agustinsantiaque.router.Rutas
 import com.example.parcial02agustinsantiaque.ui.theme.Parcial02AgustinSantiñaqueTheme
 import com.example.parcial02agustinsantiaque.utils.ManejoArchivoCiudades
 
-
 class MainActivity : ComponentActivity() {
+    private lateinit var manejoArchivoCiudades: ManejoArchivoCiudades
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val ciudades: List<Ciudad> = ManejoArchivoCiudades.getCiudadesDesdeJson(this)
         enableEdgeToEdge()
         setContent {
             Parcial02AgustinSantiñaqueTheme {
-
                 val navController = rememberNavController()
 
-                val startDestination = if (ciudades.isEmpty()) "ciudades" else "clima"
-
-                NavHost(navController = navController, startDestination = startDestination)
-                {
-                    composable("ciudades") { CiudadesPage(navController, ciudades) }
-                    composable("clima") { backStackEntry ->
-                        val nombre = backStackEntry.arguments?.getString("nombre") ?: ""
-                        val latitud = backStackEntry.arguments?.getString("latitud")?.toDouble() ?: 0.0
-                        val longitud = backStackEntry.arguments?.getString("longitud")?.toDouble() ?: 0.0
-                        val country = backStackEntry.arguments?.getString("country") ?: ""
-
-                        ClimaPage(
-                            navController = navController,
-                            nombre = nombre,
-                            latitud = latitud,
-                            longitud = longitud,
-                            country = country
-                        )
-                    }                }
-
+                NavHost(navController = navController, startDestination = Rutas.Ciudades.id) {
+                    composable(route = Rutas.Ciudades.id) { CiudadesPage(navController = navController) }
+                    composable(route = "clima?lat={lat}&lon={lon}",
+                        arguments = listOf(
+                            navArgument("lat") { type = NavType.StringType },
+                            navArgument("lon") { type = NavType.StringType }
+                        ))
+                    { backStackEntry ->
+                        ClimaPage(navController = navController, backStackEntry)
+                    }
+                }
             }
+
         }
     }
 }

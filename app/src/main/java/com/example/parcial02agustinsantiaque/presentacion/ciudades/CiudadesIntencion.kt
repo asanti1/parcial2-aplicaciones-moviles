@@ -1,5 +1,9 @@
 package com.example.parcial02agustinsantiaque.presentacion.ciudades
 
+import com.example.parcial02agustinsantiaque.repositorio.models.Ciudad
+
 sealed class CiudadesIntencion {
     data class getLatitudLongitud(val textoBusqueda: String) : CiudadesIntencion()
+    data class ciudadSeleccionada(val ciudad: Ciudad) : CiudadesIntencion()
+
 }

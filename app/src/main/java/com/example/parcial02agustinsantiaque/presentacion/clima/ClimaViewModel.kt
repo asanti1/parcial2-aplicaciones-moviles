@@ -1,53 +1,129 @@
 package com.example.parcial02agustinsantiaque.presentacion.clima
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavBackStackEntry
 import com.example.parcial02agustinsantiaque.repositorio.Repositorio
+import com.example.parcial02agustinsantiaque.repositorio.models.Clima
+import com.example.parcial02agustinsantiaque.repositorio.models.ClimaActual
+import com.example.parcial02agustinsantiaque.router.Router
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-class ClimaViewModel(val repositorio: Repositorio) : ViewModel() {
+data class ClimaYPronostico(
+    val actual: ClimaActual,
+    val pronostico: List<Clima>
+) {
+    companion object {
+        fun fromClimaActualAndProcesado(
+            climaActual: ClimaActual,
+            climaProcesado: Map<String, Triple<Double, Double, Double>>
+        ): ClimaYPronostico {
+            val pronostico = climaProcesado.map { (fecha, datos) ->
+                Clima(
+                    dateTime = fecha,
+                    tempMin = datos.first,
+                    tempMax = datos.second,
+                    probLLuvia = datos.third
+                )
+            }
+            return ClimaYPronostico(climaActual, pronostico)
+        }
+    }
+}
+
+
+class ClimaViewModel(
+    val router: Router,
+    val backStackEntry: NavBackStackEntry,
+    val repositorio: Repositorio,
+) : ViewModel() {
 
     var estado by mutableStateOf<ClimaEstado>(ClimaEstado.Vacio)
 
     fun ejecutar(intencion: ClimaIntencion) {
-        when (intencion) {
-            is ClimaIntencion.getLatitudLongitud -> getLatitudLongitud(intencion.textoBusqueda)
+        if (intencion == ClimaIntencion.volverAtras) {
+            volverAtras()
         }
     }
 
-    private fun getLatitudLongitud(textoBusqueda: String) {
-        estado = ClimaEstado.Cargando
-        viewModelScope.launch {
-            try {
-                val info = repositorio.getLatitudLongitud(textoBusqueda)
-                if (info != null) {
-                    estado = ClimaEstado.Ok(info)
-                } else {
-                    estado = ClimaEstado.Error
-                }
-            } catch (exception: Exception) {
-                estado = ClimaEstado.Error
-            }
+    init {
+        cargarClimaYPronostico()
+    }
 
+    fun volverAtras() {
+        router.regresar()
+    }
+    fun cargarClimaYPronostico() {
+        viewModelScope.launch {
+            estado = ClimaEstado.Cargando
+            Log.d("ClimaViewModel", "Estado cambiado a Cargando")
+            try {
+                val climaActual = repositorio.getClimaActual(
+                    lat = backStackEntry.arguments!!.getString("lat")!!,
+                    lon = backStackEntry.arguments!!.getString("lon")!!
+                )
+                val pronosticoData = repositorio.getClimaCincoDias(
+                    lat = backStackEntry.arguments!!.getString("lat")!!,
+                    lon = backStackEntry.arguments!!.getString("lon")!!
+                )
+                val pronosticoProcesado = procesarDatosClima(pronosticoData)
+                val climaIntegrado = ClimaYPronostico.fromClimaActualAndProcesado(climaActual, pronosticoProcesado)
+                Log.d("DEBUGGGG",pronosticoProcesado.toString())
+                Log.d("DEBUGGG",pronosticoProcesado.toString())
+                estado = ClimaEstado.Ok(climaIntegrado)
+                Log.d("ClimaViewModel", "Datos cargados, estado Ok")
+            } catch (e: Exception) {
+                estado = ClimaEstado.Error
+                Log.e("ClimaViewModel", "Error al cargar datos", e)
+            }
         }
+    }
+
+    @SuppressLint("NewApi")
+    fun procesarDatosClima(data: List<Clima>): Map<String, Triple<Double, Double, Double>> {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val hoy = LocalDateTime.now().format(formatter).split(" ")[0]
+        val datosFiltrados = data.filter {
+            it.dateTime.split(" ")[0] != hoy
+        }
+
+        val climaPorDia = datosFiltrados.groupBy { it.dateTime.split(" ")[0] }
+            .mapValues { (_, dataDiaria) ->
+                Triple(
+                    dataDiaria.map { it.tempMin }.average(),
+                    dataDiaria.map { it.tempMax }.average(),
+                    dataDiaria.map { it.probLLuvia }.average()
+                )
+            }
+        val keys = climaPorDia.keys.toList()
+        val primerosCuatroDias = keys.take(4)
+
+        return climaPorDia.filterKeys { primerosCuatroDias.contains(it) }
     }
 
 
     class ClimaViewModelFactory(
-        private val repositorio: Repositorio,
+        private val router: Router,
+        private val backStackEntry: NavBackStackEntry,
+        private val repositorio: Repositorio
     ) : ViewModelProvider.Factory {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ClimaViewModel::class.java)) {
-                return ClimaViewModel(repositorio) as T
+                return ClimaViewModel(router, backStackEntry, repositorio) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
+
     }
 }
 
