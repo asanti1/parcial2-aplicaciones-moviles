@@ -1,5 +1,6 @@
 package com.example.parcial02agustinsantiaque.presentacion.ciudades
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -35,8 +36,8 @@ class CiudadesViewModel(
         viewModelScope.launch {
             try {
                 val info = repositorio.buscarLatLonByNombre(textoBusqueda)
-                if (info != null) {
-                    println("Datos recibidos: $info")
+                Log.d("getLangLong", info.toString())
+                if (info?.isNotEmpty() == true) {
                     estado = CiudadesEstado.BusquedaTerminada(info)
                 } else {
                     estado = CiudadesEstado.Error

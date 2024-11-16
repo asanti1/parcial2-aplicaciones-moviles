@@ -14,7 +14,7 @@ import com.example.parcial02agustinsantiaque.repositorio.models.Clima
 import com.example.parcial02agustinsantiaque.repositorio.models.ClimaActual
 import com.example.parcial02agustinsantiaque.router.Router
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 data class ClimaYPronostico(
@@ -61,6 +61,7 @@ class ClimaViewModel(
     fun volverAtras() {
         router.regresar()
     }
+
     fun cargarClimaYPronostico() {
         viewModelScope.launch {
             estado = ClimaEstado.Cargando
@@ -75,39 +76,64 @@ class ClimaViewModel(
                     lon = backStackEntry.arguments!!.getString("lon")!!
                 )
                 val pronosticoProcesado = procesarDatosClima(pronosticoData)
-                val climaIntegrado = ClimaYPronostico.fromClimaActualAndProcesado(climaActual, pronosticoProcesado)
-                Log.d("DEBUGGGG",pronosticoProcesado.toString())
-                Log.d("DEBUGGG",pronosticoProcesado.toString())
+                val climaIntegrado =
+                    ClimaYPronostico.fromClimaActualAndProcesado(climaActual, pronosticoProcesado)
                 estado = ClimaEstado.Ok(climaIntegrado)
-                Log.d("ClimaViewModel", "Datos cargados, estado Ok")
             } catch (e: Exception) {
                 estado = ClimaEstado.Error
-                Log.e("ClimaViewModel", "Error al cargar datos", e)
             }
         }
     }
 
     @SuppressLint("NewApi")
     fun procesarDatosClima(data: List<Clima>): Map<String, Triple<Double, Double, Double>> {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        val hoy = LocalDateTime.now().format(formatter).split(" ")[0]
+        val formatterEntrada = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val formatterSalida = DateTimeFormatter.ofPattern("dd/MM")
+        val hoy = LocalDate.now().format(formatterEntrada)
+
         val datosFiltrados = data.filter {
-            it.dateTime.split(" ")[0] != hoy
+            val datePart = it.dateTime.split(" ")[0]
+            LocalDate.parse(datePart, formatterEntrada)
+                .format(formatterSalida) != hoy.split("-")[1] + "/" + hoy.split("-")[2]
         }
 
-        val climaPorDia = datosFiltrados.groupBy { it.dateTime.split(" ")[0] }
-            .mapValues { (_, dataDiaria) ->
-                Triple(
-                    dataDiaria.map { it.tempMin }.average(),
-                    dataDiaria.map { it.tempMax }.average(),
-                    dataDiaria.map { it.probLLuvia }.average()
-                )
-            }
+        val climaPorDia = datosFiltrados.groupBy {
+            LocalDate.parse(it.dateTime.split(" ")[0], formatterEntrada).format(formatterSalida)
+        }.mapValues { (_, dataDiaria) ->
+            Triple(
+                dataDiaria.map { it.tempMin }.average(),
+                dataDiaria.map { it.tempMax }.average(),
+                dataDiaria.map { it.probLLuvia }.average()
+            )
+        }
+
         val keys = climaPorDia.keys.toList()
         val primerosCuatroDias = keys.take(4)
 
         return climaPorDia.filterKeys { primerosCuatroDias.contains(it) }
     }
+    /*   fun procesarDatosClima(data: List<Clima>): Map<String, Triple<Double, Double, Double>> {
+           val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+           val hoy = LocalDateTime.now().format(formatter).split(" ")[0]
+           val formatterEntrada = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+           val formatterSalida = DateTimeFormatter.ofPattern("dd/MM")
+           val datosFiltrados = data.filter {
+               it.dateTime.split(" ")[0] != hoy
+           }
+
+           val climaPorDia = datosFiltrados.groupBy { it.dateTime.split(" ")[0] }
+               .mapValues { (_, dataDiaria) ->
+                   Triple(
+                       dataDiaria.map { it.tempMin }.average(),
+                       dataDiaria.map { it.tempMax }.average(),
+                       dataDiaria.map { it.probLLuvia }.average()
+                   )
+               }
+           val keys = climaPorDia.keys.toList()
+           val primerosCuatroDias = keys.take(4)
+
+           return climaPorDia.filterKeys { primerosCuatroDias.contains(it) }
+       }*/
 
 
     class ClimaViewModelFactory(

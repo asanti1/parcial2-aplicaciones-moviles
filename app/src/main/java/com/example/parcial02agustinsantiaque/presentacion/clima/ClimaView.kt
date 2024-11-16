@@ -1,5 +1,7 @@
 package com.example.parcial02agustinsantiaque.presentacion.clima
 
+import android.annotation.SuppressLint
+import android.icu.text.SimpleDateFormat
 import android.os.Build.VERSION.SDK_INT
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -42,6 +44,7 @@ import com.example.parcial02agustinsantiaque.repositorio.models.ClimaActual
 import com.example.parcial02agustinsantiaque.ui.theme.DarkPrimary
 import com.example.parcial02agustinsantiaque.ui.theme.DarkSecondary
 import com.example.parcial02agustinsantiaque.ui.theme.DarkTertiary
+import java.util.Locale
 
 @Composable
 fun ClimaView(
@@ -89,7 +92,9 @@ fun Ok(clima: ClimaYPronostico, ejecutar: (ClimaIntencion) -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(color = DarkPrimary)
+            .padding(top = 10.dp)
     ) {
+        Spacer(modifier = Modifier.padding(top = 20.dp))
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -126,7 +131,7 @@ fun CurrentWeatherCard(climaActual: ClimaActual) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(18.dp)
             .background(DarkSecondary),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -188,6 +193,7 @@ fun ForecastForNextDays(pronostico: List<Clima>) {
     }
 }
 
+@SuppressLint("SimpleDateFormat", "DefaultLocale")
 @Composable
 fun ForecastDayCard(pronostico: Clima) {
     Card(
@@ -199,24 +205,25 @@ fun ForecastDayCard(pronostico: Clima) {
             contentColor = DarkSecondary, disabledContentColor = DarkTertiary,
             containerColor = DarkSecondary,
             disabledContainerColor = DarkTertiary
-        ) ,
+        ),
         shape = RoundedCornerShape(8.dp),
 
-    ) {
+        ) {
 
-        Column(
+        Row(
             modifier = Modifier
                 .padding(16.dp)
         ) {
-            Text(
-                text = pronostico.dateTime,
-                color = Color.White,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "High: ${pronostico.tempMax}°C / Low: ${pronostico.tempMin}°C",
+                text = "Dia ${pronostico.dateTime}: ",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Text(
+                text = "Min: ${String.format("%.2f", pronostico.tempMin)}°C" +
+                        " / Max: ${String.format("%.2f", pronostico.tempMax)}°C ",
                 style = MaterialTheme.typography.bodyLarge
             )
         }
