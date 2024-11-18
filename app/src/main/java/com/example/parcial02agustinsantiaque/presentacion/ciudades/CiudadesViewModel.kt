@@ -1,7 +1,6 @@
 package com.example.parcial02agustinsantiaque.presentacion.ciudades
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +11,7 @@ import com.example.parcial02agustinsantiaque.repositorio.Repositorio
 import com.example.parcial02agustinsantiaque.repositorio.models.Ciudad
 import com.example.parcial02agustinsantiaque.router.Router
 import com.example.parcial02agustinsantiaque.router.Rutas
+import com.example.parcial02agustinsantiaque.utils.ManejoArchivoCiudades
 import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -20,6 +20,7 @@ class CiudadesViewModel(
     private val repositorio: Repositorio,
     private val router: Router,
     private val fusedLocationClient: FusedLocationProviderClient,
+    private val manejoArchivoCiudades: ManejoArchivoCiudades
 ) : ViewModel() {
 
     var estado by mutableStateOf<CiudadesEstado>(CiudadesEstado.Vacio)
@@ -29,6 +30,7 @@ class CiudadesViewModel(
             is CiudadesIntencion.buscarLatLonByNombre -> buscarLatLonByNombre(intencion.textoBusqueda)
             is CiudadesIntencion.ciudadSeleccionada -> ciudadSeleccionada(intencion.ciudad)
             is CiudadesIntencion.navegarPorGeo -> navegarPorGeo()
+            is CiudadesIntencion.irAHistorial -> irAHistorial()
         }
     }
 
@@ -52,8 +54,12 @@ class CiudadesViewModel(
         }
     }
 
+    private fun irAHistorial() {
+        router.navegar(Rutas.Historial);
+    }
 
     private fun ciudadSeleccionada(ciudad: Ciudad) {
+        manejoArchivoCiudades.agregarOReubicarCiudadEnJson(ciudad)
         router.navegar(Rutas.Clima(ciudad.lat.toString(), ciudad.lon.toString()))
     }
 
@@ -62,7 +68,6 @@ class CiudadesViewModel(
         viewModelScope.launch {
             estado = try {
                 val info = repositorio.buscarLatLonByNombre(textoBusqueda)
-                Log.d("getLangLong", info.toString())
                 if (info?.isNotEmpty() == true) {
                     CiudadesEstado.BusquedaTerminada(info)
                 } else {
@@ -78,7 +83,8 @@ class CiudadesViewModel(
     class CiudadesViewModelFactory(
         private val repositorio: Repositorio,
         private val router: Router,
-        private val fusedLocationClient: FusedLocationProviderClient
+        private val fusedLocationClient: FusedLocationProviderClient,
+        private val manejoArchivoCiudades: ManejoArchivoCiudades
     ) : ViewModelProvider.Factory {
 
         @Suppress("UNCHECKED_CAST")
@@ -88,6 +94,7 @@ class CiudadesViewModel(
                     repositorio,
                     router,
                     fusedLocationClient,
+                    manejoArchivoCiudades
                 ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")

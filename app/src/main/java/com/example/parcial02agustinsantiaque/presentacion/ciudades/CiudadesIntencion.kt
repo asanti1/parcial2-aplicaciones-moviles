@@ -6,4 +6,5 @@ sealed class CiudadesIntencion {
     data class buscarLatLonByNombre(val textoBusqueda: String) : CiudadesIntencion()
     data class ciudadSeleccionada(val ciudad: Ciudad) : CiudadesIntencion()
     data object navegarPorGeo : CiudadesIntencion()
+    data object irAHistorial : CiudadesIntencion()
 }

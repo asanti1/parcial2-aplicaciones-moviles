@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -109,6 +110,19 @@ fun CiudadesView(
                         )
                     }
                 }
+                IconButton(
+                    onClick = { ejecutar(CiudadesIntencion.irAHistorial) },
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(start = 8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = "Ir a historial",
+                        tint = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
 
             }
 
@@ -117,7 +131,7 @@ fun CiudadesView(
             when (estado) {
                 is CiudadesEstado.Cargando -> Cargando()
                 is CiudadesEstado.Error -> Error()
-                is CiudadesEstado.BusquedaTerminada -> BusquedaTerminada(estado.info, ejecutar)
+                is CiudadesEstado.BusquedaTerminada -> BusquedaTerminada(estado.ciudades, ejecutar)
                 is CiudadesEstado.Vacio -> Vacio()
             }
         }

@@ -20,16 +20,19 @@ import com.example.parcial02agustinsantiaque.utils.ManejoArchivoCiudades
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import android.Manifest
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.PermissionChecker
+import com.example.parcial02agustinsantiaque.presentacion.historial.HistorialPage
 
 class MainActivity : ComponentActivity() {
     private lateinit var manejoArchivoCiudades: ManejoArchivoCiudades
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationPermissionDecided by mutableStateOf(false)
     private var hasLocationPermission by mutableStateOf(false)
+
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
@@ -39,7 +42,10 @@ class MainActivity : ComponentActivity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         checkAndRequestLocationPermission()
         checkLocationPermission()
+        manejoArchivoCiudades = ManejoArchivoCiudades(this)
+
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
             Parcial02AgustinSantiñaqueTheme {
@@ -52,7 +58,8 @@ class MainActivity : ComponentActivity() {
                             CiudadesPage(
                                 navController = navController,
                                 fusedLocationClient = fusedLocationClient,
-                                hasLocationPermission = hasLocationPermission
+                                hasLocationPermission = hasLocationPermission,
+                                manejoArchivoCiudades = manejoArchivoCiudades
                             )
                         }
                         composable(route = "clima?lat={lat}&lon={lon}",
@@ -62,6 +69,13 @@ class MainActivity : ComponentActivity() {
                             ))
                         { backStackEntry ->
                             ClimaPage(navController = navController, backStackEntry)
+                        }
+                        composable(route = Rutas.Historial.id)
+                        {
+                            HistorialPage(
+                                navController = navController,
+                                manejoArchivoCiudades =  manejoArchivoCiudades
+                            )
                         }
                     }
                 }
@@ -95,7 +109,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkLocationPermission() {
-        val context = application.applicationContext // Uso correcto de 'application'
+        val context = application.applicationContext
         val hasPermission = PermissionChecker.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION

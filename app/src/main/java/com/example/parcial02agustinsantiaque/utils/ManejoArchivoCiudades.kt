@@ -4,20 +4,21 @@ import android.content.Context
 import com.example.parcial02agustinsantiaque.repositorio.models.Ciudad
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.FileNotFoundException
 
 
-class ManejoArchivoCiudades  {
+class ManejoArchivoCiudades(context: Context) {
     private val NOMBRE_ARCHIVO = "ciudades.json"
-    private lateinit var context: Context
+    private val context: Context = context.applicationContext
 
-    fun initialize(context: Context) {
-        this.context = context.applicationContext
-    }
     fun getCiudadesDesdeJson(): List<Ciudad> {
         return try {
-            val jsonString =
-                context.openFileInput(NOMBRE_ARCHIVO).bufferedReader().use { it.readText() }
-            Json.decodeFromString(jsonString)
+            val jsonString = context.openFileInput(NOMBRE_ARCHIVO).bufferedReader().use { it.readText() }
+            Json.decodeFromString<List<Ciudad>>(jsonString)
+        } catch (e: FileNotFoundException) {
+            val listaCiudadesInicial = emptyList<Ciudad>()
+            guardarCiudadesComoJson(listaCiudadesInicial)
+            listaCiudadesInicial
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
@@ -35,8 +36,12 @@ class ManejoArchivoCiudades  {
         }
     }
 
-    fun agregarCiudadAJson(nuevaCiudad: Ciudad) {
+    fun agregarOReubicarCiudadEnJson(nuevaCiudad: Ciudad) {
         val listaCiudadesActual = getCiudadesDesdeJson().toMutableList()
+        val index = listaCiudadesActual.indexOfFirst { it.name == nuevaCiudad.name }
+        if (index != -1) {
+            listaCiudadesActual.removeAt(index)
+        }
         listaCiudadesActual.add(0, nuevaCiudad)
 
         guardarCiudadesComoJson(listaCiudadesActual)
