@@ -1,7 +1,6 @@
 package com.example.parcial02agustinsantiaque.presentacion.clima
 
 import android.annotation.SuppressLint
-import android.icu.text.SimpleDateFormat
 import android.os.Build.VERSION.SDK_INT
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,7 +43,6 @@ import com.example.parcial02agustinsantiaque.repositorio.models.ClimaActual
 import com.example.parcial02agustinsantiaque.ui.theme.DarkPrimary
 import com.example.parcial02agustinsantiaque.ui.theme.DarkSecondary
 import com.example.parcial02agustinsantiaque.ui.theme.DarkTertiary
-import java.util.Locale
 
 @Composable
 fun ClimaView(
@@ -83,7 +81,7 @@ fun Cargando() {
 @Composable
 fun Error() {
     Spacer(modifier = Modifier.padding(top = 20.dp))
-    Text("ERROERERORROERERROER")
+    Text("Error")
 }
 
 @Composable
@@ -150,7 +148,7 @@ fun CurrentWeatherCard(climaActual: ClimaActual) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground), // Asegúrate de tener este recurso
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
                     contentDescription = "Weather Icon",
                     tint = Color(0xFFFFC107),
                     modifier = Modifier.size(64.dp)

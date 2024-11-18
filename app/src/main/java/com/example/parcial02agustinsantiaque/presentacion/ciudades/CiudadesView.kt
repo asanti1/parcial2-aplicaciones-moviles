@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
@@ -51,6 +52,7 @@ import com.example.parcial02agustinsantiaque.ui.theme.DarkTertiary
 fun CiudadesView(
     estado: CiudadesEstado,
     ejecutar: (CiudadesIntencion) -> Unit,
+    hasLocationPermission: Boolean
 ) {
     var textoBusqueda by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -76,6 +78,7 @@ fun CiudadesView(
             ) {
                 TextField(
                     value = textoBusqueda,
+                    singleLine = true,
                     onValueChange = { textoBusqueda = it },
                     modifier = Modifier
                         .weight(1f)
@@ -86,23 +89,27 @@ fun CiudadesView(
                     ),
                     keyboardActions = KeyboardActions(onSearch = {
                         keyboardController?.hide()
-                        ejecutar(CiudadesIntencion.getLatitudLongitud(textoBusqueda))
+                        ejecutar(CiudadesIntencion.buscarLatLonByNombre(textoBusqueda))
                     }),
-                    placeholder = { Text("Buscar ciudad", color = Color.LightGray) }
+                    placeholder = { Text("Buscar ciudad", color = Color.Black) },
+                    textStyle = TextStyle(color = Color.DarkGray)
                 )
-                IconButton(
-                    onClick = { /* TODO: Implementar la acción para usar la geolocalización */ },
-                    modifier = Modifier
-                        .size(60.dp)
-                        .padding(start = 8.dp)
-                ) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = "Usar mi localización",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
+                if (hasLocationPermission) {
+                    IconButton(
+                        onClick = { ejecutar(CiudadesIntencion.navegarPorGeo) },
+                        modifier = Modifier
+                            .size(60.dp)
+                            .padding(start = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "Usar mi localización",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
                 }
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))

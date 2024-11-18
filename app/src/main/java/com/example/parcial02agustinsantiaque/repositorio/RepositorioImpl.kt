@@ -15,7 +15,6 @@ import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlin.math.log
 
 private const val BASE_URL_CIUDAD = "https://api.openweathermap.org/geo/1.0/direct"
 private const val BASE_URL_CLIMA = "https://api.openweathermap.org/data/2.5/forecast"

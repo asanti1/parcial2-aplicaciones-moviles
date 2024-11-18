@@ -41,9 +41,9 @@ data class ClimaYPronostico(
 
 
 class ClimaViewModel(
-    val router: Router,
-    val backStackEntry: NavBackStackEntry,
-    val repositorio: Repositorio,
+    private val router: Router,
+    private val backStackEntry: NavBackStackEntry,
+    private val repositorio: Repositorio,
 ) : ViewModel() {
 
     var estado by mutableStateOf<ClimaEstado>(ClimaEstado.Vacio)
@@ -58,11 +58,11 @@ class ClimaViewModel(
         cargarClimaYPronostico()
     }
 
-    fun volverAtras() {
+    private fun volverAtras() {
         router.regresar()
     }
 
-    fun cargarClimaYPronostico() {
+    private fun cargarClimaYPronostico() {
         viewModelScope.launch {
             estado = ClimaEstado.Cargando
             Log.d("ClimaViewModel", "Estado cambiado a Cargando")
@@ -112,29 +112,6 @@ class ClimaViewModel(
 
         return climaPorDia.filterKeys { primerosCuatroDias.contains(it) }
     }
-    /*   fun procesarDatosClima(data: List<Clima>): Map<String, Triple<Double, Double, Double>> {
-           val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-           val hoy = LocalDateTime.now().format(formatter).split(" ")[0]
-           val formatterEntrada = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-           val formatterSalida = DateTimeFormatter.ofPattern("dd/MM")
-           val datosFiltrados = data.filter {
-               it.dateTime.split(" ")[0] != hoy
-           }
-
-           val climaPorDia = datosFiltrados.groupBy { it.dateTime.split(" ")[0] }
-               .mapValues { (_, dataDiaria) ->
-                   Triple(
-                       dataDiaria.map { it.tempMin }.average(),
-                       dataDiaria.map { it.tempMax }.average(),
-                       dataDiaria.map { it.probLLuvia }.average()
-                   )
-               }
-           val keys = climaPorDia.keys.toList()
-           val primerosCuatroDias = keys.take(4)
-
-           return climaPorDia.filterKeys { primerosCuatroDias.contains(it) }
-       }*/
-
 
     class ClimaViewModelFactory(
         private val router: Router,

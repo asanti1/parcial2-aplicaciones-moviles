@@ -2,7 +2,7 @@ package com.example.parcial02agustinsantiaque.router
 
 import androidx.navigation.NavHostController
 
-class RouterImpl(val navHostController: NavHostController) : Router {
+class RouterImpl(private val navHostController: NavHostController) : Router {
 
     override fun navegar(ruta: Rutas) {
         when (ruta) {

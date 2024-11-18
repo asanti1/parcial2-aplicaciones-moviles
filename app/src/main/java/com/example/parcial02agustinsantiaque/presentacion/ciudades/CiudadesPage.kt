@@ -6,9 +6,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.parcial02agustinsantiaque.repositorio.RepositorioImpl
 import com.example.parcial02agustinsantiaque.router.RouterImpl
+import com.google.android.gms.location.FusedLocationProviderClient
 
 @Composable
-fun CiudadesPage(navController: NavHostController) {
+fun CiudadesPage(
+    navController: NavHostController,
+    fusedLocationClient: FusedLocationProviderClient,
+    hasLocationPermission: Boolean
+) {
     val repositorio = remember { RepositorioImpl() }
     val router = remember { RouterImpl(navController) }
 
@@ -16,12 +21,14 @@ fun CiudadesPage(navController: NavHostController) {
         factory = CiudadesViewModel
             .CiudadesViewModelFactory(
                 repositorio = repositorio,
-                router = router
+                router = router,
+                fusedLocationClient = fusedLocationClient
             )
     )
 
     CiudadesView(
         estado = viewModel.estado,
-        ejecutar = { intencion -> viewModel.ejecutar(intencion) }
+        ejecutar = { intencion -> viewModel.ejecutar(intencion) },
+        hasLocationPermission = hasLocationPermission
     )
 }
